@@ -14,7 +14,9 @@ def hasRQJob(number):
     if len(snum)<1: 
         return False
     jobs = runCmd(['qstat',snum[0]])
-    for line in jobs:
+    lines = [line for line in jobs]
+    if len(lines) == 2: return True
+    for line in lines:
         columns = line.split()
         if len(columns) >= 2 and columns[-2] in ('Q','R'): return True
     return False
