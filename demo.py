@@ -35,7 +35,7 @@ for i in range(4):
 
 wd = os.path.dirname(os.path.realpath(__file__))
         
-simulation = MembraneSimulation("demo", np, 10000, 0.01, os.path.join(wd,'demo'), os.path.join(wd,'demo'),
+simulation = MembraneSimulation("demo", np, 1000, 0.01, os.path.join(wd,'demo'), os.path.join(wd,'demo'),
                                 os.path.join(wd,'mem/template/data.template'),
                                 os.path.join(wd,'mem/template/in.template'),
                                 corepos_x=0.0, corepos_y=0.0, corepos_z=7.0)
@@ -44,7 +44,7 @@ simulation.saveFiles()
 script = os.path.join(simulation.filedir, simulation.scriptName)
     
 if (args.mpi):
-    parlammps.runSim(script, args.nodes, args.timeout)
+    parlammps.runSim(script, args.nodes, args.timeout, silent=False)
 else:
     parlammps.runSimSerial(script)
 
