@@ -1,8 +1,8 @@
 from ga import phenome
 from ga import grayencoder as ge
 from tools import listtools as lt
+from tools.vectools import polarToCartesianVector 
 import numpy as np
-import math
 
 class Ligand:
 	def __init__(self,eps,sig,rad,polAng,aziAng,mass=1,cutoff=2.0):
@@ -24,17 +24,17 @@ class NanoParticle:
 	ligands = []
 	def __init__(
 		self,
-		x=0.0,
-		y=0.0,
-		z=0.0,
+#		x=0.0,
+#		y=0.0,
+#		z=0.0,
 		mass=1.0,
 		eps=1.0,
 		sig=4.0,
 		cutoff=2.0**(1.0/6.0)
 		):
-		self.x = x
-		self.y = y
-		self.z = z
+#		self.x = x
+#		self.y = y
+#		self.z = z
 		self.mass = mass
 		self.eps = eps
 		self.sig = sig
@@ -46,25 +46,17 @@ class NanoParticle:
 			self.ligands.append(ligand)
 
 	def spaceIsOccupied(self,polarTargetAngle,azimuthalTargetAngle):
-		target_v = [
-		self.sig*math.sin(polarTargetAngle)*math.cos(azimuthalTargetAngle),
-		self.sig*math.sin(polarTargetAngle)*math.sin(azimuthalTargetAngle),
-		self.sig*math.cos(polarTargetAngle)
-		]
+		target_v = polarToCartesianVector(self.sig, polarTargetAngle, azimuthalTargetAngle)
 		for ligand in self.ligands:
-			ligand_v = [
-			ligand.rad*math.sin(ligand.polAng)*math.cos(ligand.aziAng),
-			ligand.rad*math.sin(ligand.polAng)*math.sin(ligand.aziAng),
-			ligand.rad*math.cos(ligand.polAng)
-			]
-
+			ligand_v = polarToCartesianVector(ligand.rad, ligand.polAng, ligand.aziAng)
 			d = np.linalg.norm(np.subtract(ligand_v,target_v))
 			if d<ligand.size:
 				return True
 		return False
 
 	def __str__(self):
-		protstr = "x:"+str(self.x)+", y:"+str(self.y)+", m:"+str(self.mass)
+		protstr = "m:"+str(self.mass)
+#		protstr += ", x:"+str(self.x)+", y:"+str(self.y)+", z:"+str(self.z)
 		protstr += ", eps:"+str(self.eps)+", sig:"+str(self.sig)+", cut:"+str(self.cutoff)
 		protstr += "\n"+str(len(self.ligands))+" ligands"
 		i=0

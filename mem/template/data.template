@@ -7,7 +7,7 @@ _ATOM TYPE COUNT PLACEHOLDER_
 -25.1147367097 25.1147367097 ylo yhi
 -100.0 100.0 zlo zhi
 
-Masses
+Masses # actually overridden by the "sphere" atom_style parameters {(pi/6)*rho*d^3} - LAMMPS "bug"?
 
 1 1
 2 1

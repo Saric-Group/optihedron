@@ -282,8 +282,7 @@ def evaluateParticleInstance(np,simName):
         )
     sim.saveFiles()
     scriptPath=os.path.join(sim.filedir,sim.scriptName)
-    outpath = os.path.join(wd,"out")
-    outFilePath = os.path.join(outpath,sim.name+"_out.xyz")
+    outFilePath = os.path.join(sim.outdir,sim.outName)
     time.sleep(1)
 
     if(QSUB):
