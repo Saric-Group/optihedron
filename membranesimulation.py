@@ -61,14 +61,9 @@ class MembraneSimulation():
 
 		for i, ligand in enumerate(self.protein.ligands, 1):
 			#physics convention, theta = polar, phi = azimuthal
-			ligand_v = [
-			ligand.rad*math.sin(ligand.polAng)*math.cos(ligand.aziAng),
-			ligand.rad*math.sin(ligand.polAng)*math.sin(ligand.aziAng),
-			ligand.rad*math.cos(ligand.polAng)
-			]			
+			ligand_v = vectools.polarToCartesianVector(ligand.rad, ligand.polAng, ligand.aziAng)
 
 			r_ligand_v = np.dot(self.rmat,ligand_v)
-
 
 			ligand_x = self.corepos_x+r_ligand_v[0]
 			ligand_y = self.corepos_y+r_ligand_v[1]

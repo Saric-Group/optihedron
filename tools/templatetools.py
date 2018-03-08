@@ -9,5 +9,5 @@ def fillTemplate(template, filledTemplate, placeHolder, filledPlaceHolder):
 	os.rename(filledTemplate, template)
 
 def fill(content,placeHolder,filledPlaceHolder):
-    content.replace(placeHolder, filledPlaceHolder)
-    return content
+	content.replace(placeHolder, filledPlaceHolder)
+	return content

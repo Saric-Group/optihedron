@@ -19,12 +19,17 @@ def buildERMatrix(axis, theta):
                      [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
                      [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
 
+def polarToCartesianVector(radius, polarAngle, azimuthAngle):
+    return [radius*math.sin(polarAngle)*math.cos(azimuthAngle),
+            radius*math.sin(polarAngle)*math.sin(azimuthAngle),
+            radius*math.cos(polarAngle)]
+
 def randomUnitVector():
     phi = np.random.uniform(0,np.pi*2)
-    costheta = np.random.uniform(-1,1)
-
-    theta = np.arccos( costheta )
-    x = np.sin( theta) * np.cos( phi )
-    y = np.sin( theta) * np.sin( phi )
-    z = np.cos( theta )
+    cos_theta = np.random.uniform(-1,1)
+    sin_theta = np.sqrt(1-cos_theta*cos_theta) #theta = np.arccos(cos_theta)
+    
+    x = sin_theta*np.cos(phi) # np.sin(theta)*np.cos(phi)
+    y = sin_theta*np.sin(phi) # np.sin(theta)*np.sin(phi)
+    z = cos_theta # np.cos(theta)
     return [x,y,z]
