@@ -126,3 +126,4 @@ ENV/
 # Eclipse stuff
 .project
 .pydevproject
+.settings
