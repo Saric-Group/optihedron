@@ -4,6 +4,7 @@ that nanoparticle and a membrane, and a LAMMPS script to read that data and run 
 If run as a python script it will run the generated LAMMPS script and produce plotable output in a
 'demo' folder.
 """
+    
 from nanoparticle import NanoParticle, Ligand
 from membranesimulation import MembraneSimulation
 
@@ -11,6 +12,18 @@ import parlammps
 
 import math
 import os
+import argparse
+
+parser = argparse.ArgumentParser(description='Creates and runs a demo simulation.')
+
+#MPI Options
+parser.add_argument('-mpi','--mpi', action='store_true', help='option to run in parallel')
+parser.add_argument('-np','--nodes', default=4, type=int, help='number of cores used per mpi process')
+parser.add_argument('-tm','--timeout', default=1800, type=int, help='mpirun timeout')
+
+parser.add_argument('-c','--clean', action='store_true', help='option to remove data and script files when done')
+
+args = parser.parse_args()
 
 # nanoparticle parameters don't change a thing because they are hardcoded in the data & script templates !!?!
 np = NanoParticle()
@@ -28,11 +41,12 @@ simulation = MembraneSimulation("demo", np, 10000, 0.01, os.path.join(wd,'demo')
                                 corepos_x=0.0, corepos_y=0.0, corepos_z=7.0)
 
 simulation.saveFiles()
+script = os.path.join(simulation.filedir, simulation.scriptName)
+    
+if (args.mpi):
+    parlammps.runSim(script, args.nodes, args.timeout)
+else:
+    parlammps.runSimSerial(script)
 
-# enable options to run parallel, give number of threads to use, decide whether to generate/keep
-# the script/data files, or just run via PyLammps, or delete them when simulation is done etc.
-if __name__ == '__main__':
-    
-    parlammps.runSimSerial(os.path.join(simulation.filedir, simulation.scriptName))
-    
-    # maybe add PyLammps code that runs the demo without using the script, to show the alternative...
+if (args.clean):
+    simulation.deleteFiles()
