@@ -75,10 +75,16 @@ def execute(cmd, timeout=None):
         # STDERR is redirected to STDOUT
         phandle = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT, preexec_fn=os.setsid)
-
+        
+        # Read the stout/stderr line by line until subprocess is done
+        retcode = None
+        while (retcode == None):
+            for stdout_line in iter(phandle.stdout.readline, b''):
+                yield stdout_line
+            retcode = phandle.poll()
+        
         # Read the stdout/sterr buffers and retcode
-        output, error = phandle.communicate()
-        retcode = phandle.poll()
+        #output, error = phandle.communicate()
     except Signal:
         # Kill the running process
         phandle.kill()
@@ -94,11 +100,16 @@ def execute(cmd, timeout=None):
     #     print("MPI exited with code 1, did you forget to finalize?")
     #     raise Retcode(cmd, retcode, output=output)
 
-    return output, error
+    #return output, error
+    #yield retcode
 
-def runSim(script,np,timeout):
+def runSim(script,np,timeout,silent=True):
     try:
-        o, e = execute(['mpirun','-np',str(np),'./venv/bin/python','./plammps.py','-s',str(script)],timeout)
+        for stdout_line in execute(['mpirun','-np',str(np),'./venv/bin/python','./plammps.py','-s',str(script)],timeout):
+            if (silent):
+                pass
+            else:
+                print stdout_line,
         return True
     except TimeoutError:
         print('Process timed out')
@@ -147,7 +158,7 @@ def runSims(scripts,np,timeout):
     processes = []
     for s in scripts:
         print(s)
-        p = Process(target=runSim, args=(s,np,timeout,))
+        p = Process(target=runSim, args=(s,np,timeout))
         p.start()
         processes.append(p)
 
