@@ -1,6 +1,8 @@
 import membranesimulation as mb
 import argparse
 import os
+import subprocess
+from subprocess import call
 import pickle
 import nanoparticle
 import parlammps
@@ -15,7 +17,7 @@ parser.add_argument('-o','--out', default='', type=str,
 
 args = parser.parse_args()
 
-istr = "000000010001011100010001011100100000011100110000100011000001000001010000"
+istr = "001010000110100100000010011000100000101100000100000010001010110000010011"
 individual = [int(i) for i in istr]
 
 particle = nanoparticle.CoveredNanoParticlePhenome(individual,1,0,11,11)
@@ -25,18 +27,21 @@ np = particle.particle
 sim = mb.MembraneSimulation(
         args.input.split('/')[-1].split('.')[0],
         np,
-        50000,
+        25000,
         0.01,        
         args.out,
         os.path.dirname(args.input),
-        "/Users/joelforster/Projects/optihedron/mem/template/data.template",
-        "/Users/joelforster/Projects/optihedron/mem/template/in.template",
+        "/Users/joel/Projects/optihedron/mem/template/data.template",
+        "/Users/joel/Projects/optihedron/mem/template/in.template",
         rAxis=(1,1,0),
         rAmount=3.141        
         )
 
 sim.saveFiles()
 scriptPath = os.path.join(sim.filedir,sim.scriptName)
-parlammps.runSimSerial(scriptPath)
+cmd='/Users/joel/Projects/optihedron/lammps/src/lmp_serial < {}'.format(scriptPath)
+# process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
+call(cmd, shell=True)
+# output, error = process.communicate()
 outFilePath = os.path.join(sim.outdir,sim.outName)
 sim.postProcessOutput(outFilePath)
