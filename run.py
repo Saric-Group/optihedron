@@ -95,7 +95,7 @@ parser.add_argument('-sg','--startinggen',default=0, type=int,
                     help='starting generation')
 
 parser.add_argument('-ff','--fitnessfunction',default="budding",
-                    choices=['budding', 'diameter'])
+                    choices=['budding', 'diameter','smallworld'])
 
 
 #Model Options
@@ -808,6 +808,99 @@ def evaluateDiameter(individual):
         diams.append(numpy.max(dS))
     return numpy.mean(diams),
 
+def f2(x,y):
+    return numpy.exp(0.1*x) - numpy.exp(0.3*y)
+
+def f3(x,y,z):
+    return 25*numpy.exp(-abs(x-7.4)) - numpy.exp(3*abs(y-0.148)) - numpy.exp(0.3*z)
+
+def f4(x,y):
+    return 10*numpy.exp(-0.1*abs(x)) + 10*numpy.exp(-0.1*abs(y))
+
+def f5(x,y):
+    return 10**numpy.exp(-abs(x)) + numpy.exp(abs(0.1*y))
+
+def evaluateSmallWorld(individual):
+    p=0.35
+    phenome = CoveredNanoParticlePhenome(individual,EXPRPLACES,EPSPLACES,EPSMIN,EPSMAX) if not PARTIAL else NanoParticlePhenome(individual,EXPRPLACES,EPSPLACES,POLANGPLACES,AZIANGPLACES,EPSMIN,EPSMAX)
+    np = phenome.particle
+    swf = 100
+    f = 0
+    n = atools.buildLigandNetwork(np.ligands)
+    sws = []
+    pN = atools.pruneNetwork(n,p)
+    graphs = list(nx.connected_component_subgraphs(pN))
+    sw = []
+    sigs = []
+    maxNodes = 0
+    biggestG = None
+    spl=1
+    totalV=[0,0,0]
+    for ligand in np.ligands:
+        if ligand.eps > 0.0:
+            ligand_v = atools.sphPol2Crt([ligand.rad, ligand.polAng, ligand.aziAng])
+            for i,l in enumerate(list(ligand_v)):
+                totalV[i]+=l
+
+    for g in graphs:
+        if len(g) > maxNodes:
+            maxNodes = len(g)
+            biggestG = g
+        # if biggestG != None and len(biggestG) > 3:
+        #     swf = nx.algorithms.smallworld.omega(biggestG)
+
+    if biggestG != None and len(biggestG) > 3:
+        swf = nx.diameter(biggestG)
+        spl = nx.density(biggestG)
+
+    f = f4(numpy.linalg.norm(totalV),float(len(graphs))) + f5(spl,swf)
+
+    print numpy.linalg.norm(totalV), float(len(graphs)), spl, swf, f
+
+    # try:
+    #     for g in graphs:
+    #         if len(g) > maxNodes:
+    #             maxNodes = len(g)
+    #             biggestG = g
+    #     # if biggestG != None and len(biggestG) > 3:
+    #     #     swf = nx.algorithms.smallworld.omega(biggestG)
+
+    #     if biggestG != None and len(biggestG) > 3:
+    #         swf = nx.diameter(biggestG)
+    #         spl = nx.density(biggestG)
+    #         # swf = nx.density(biggestG)
+        
+    #     # for g in graphs:
+    #     #     if len(g)>8:
+    #     #         d = nx.algorithms.smallworld.omega(g)
+    #     #         # sig = nx.algorithms.smallworld.sigma(g)
+    #     #         if not math.isnan(d):
+    #     #             sw.append(d)
+    #     #         # sigs.append(sig)
+    #     # if len(sw) >0:
+    #     #     swf = numpy.mean(sw)
+    #         # sigf = numpy.mean(sigs)
+
+
+
+    #     # if swf != None and not math.isnan(swf):
+    #     #     # f = 100.0/(abs(float(swf))*(float(len(graphs))**4.0))-0.5*float(len(graphs))  if swf != 0.0 else -1E100
+    #     #     f = numpy.exp(-(5.0*abs(float(swf))*(float(len(graphs))-0.5) + 0.1*(float(len(graphs))-0.5))) - 0.05*float(len(graphs)) -0.25*abs(float(swf)) + 1.0
+    #     f = f3(swf,spl,float(len(graphs)))
+
+
+    #     # if swf != None and not math.isnan(swf):
+    #     #     # f = 100.0/(abs(float(swf))*(float(len(graphs))**4.0))-0.5*float(len(graphs))  if swf != 0.0 else -1E100
+    #     #     f = numpy.exp(-(5.0*abs(float(swf+1))*(float(len(graphs))-0.5) + 0.1*(float(len(graphs))-0.5))) - 0.05*float(len(graphs)) -0.25*float(swf) + 1.0
+    # except:
+    #     print "invalid network, removing individual"
+    # if f<0:
+    #     f=0
+    # if f>15:
+    #     f=15
+    # print swf,spl,len(graphs), f
+    return f,
+
 
 
 def sel(pop,k):
@@ -906,28 +999,39 @@ def afterMigration(ga):
         commitSession(ga)
 
     if KEEPBEST:
-        saveBest(ga.hof,ga.gen)
+        saveBest(ga.islands,ga.gen)
 
     if KEEPWORST:
         saveWorst(ga.islands,ga.gen)
 
     return
 
-def saveBest(hof,gen):
-    if len(hof) < 1:
+def saveBest(pop,gen):
+    if len(pop) < 1:
         return
-    ind = hof[0]
+    if len(pop[0]) < 1:
+        return
+    ind = pop[0][0]
+    maxFit = ind.fitness.values[-1]
+    for isle in pop:
+        for p in isle:
+            if p.fitness.values[-1] > maxFit:
+                ind = p
+                maxFit = ind.fitness.values[-1]
+    print "saving best:" + str(ind)+ ", fitness:" + str(ind.fitness.values[-1])
     phenome = CoveredNanoParticlePhenome(ind,EXPRPLACES,EPSPLACES,EPSMIN,EPSMAX) if not PARTIAL else NanoParticlePhenome(ind,EXPRPLACES,EPSPLACES,POLANGPLACES,AZIANGPLACES,EPSMIN,EPSMAX)
     np = phenome.particle
     sim = MembraneSimulation(
         'gen_'+str(gen)+"_best",
         np,
-        50000,
+        25000,
         TIMESTEP,            
         OUTDIR,
         HOFDIR,            
         TEMPLATEDATAPATH,
-        TEMPLATEINPUTPATH 
+        TEMPLATEINPUTPATH,
+        rAxis = vectools.randomUnitVector(),
+        rAmount = random.uniform(0.3141,3.141)
         )
     hofScriptPath = os.path.join(sim.filedir,sim.scriptName)
     sim.saveFiles()
@@ -938,23 +1042,29 @@ def saveBest(hof,gen):
 def saveWorst(pop,gen):
     if len(pop) < 1:
         return
+    if len(pop[0]) < 1:
+        return
     minFit = 1e8
-    ind = pop[0]
+    ind = pop[0][0]
     for isle in pop:
         for p in isle:
             if p.fitness.values[-1] < minFit:
                 ind = p
+                minFit = ind.fitness.values[-1]
+    print "saving worst:" + str(ind)+ ", fitness:" + str(ind.fitness.values[-1])
     phenome = CoveredNanoParticlePhenome(ind,EXPRPLACES,EPSPLACES,EPSMIN,EPSMAX) if not PARTIAL else NanoParticlePhenome(ind,EXPRPLACES,EPSPLACES,POLANGPLACES,AZIANGPLACES,EPSMIN,EPSMAX)
     np = phenome.particle
     sim = MembraneSimulation(
         'gen_'+str(gen)+"_worst",
         np,
-        50000,
+        25000,
         TIMESTEP,            
         OUTDIR,
         HOFDIR,            
         TEMPLATEDATAPATH,
-        TEMPLATEINPUTPATH 
+        TEMPLATEINPUTPATH,
+        rAxis = vectools.randomUnitVector(),
+        rAmount = random.uniform(0.3141,3.141)
         )
     hofScriptPath = os.path.join(sim.filedir,sim.scriptName)
     sim.saveFiles()
@@ -972,7 +1082,7 @@ def saveHOF(hof):
         sim = MembraneSimulation(
             'hof_'+str(i),
             np,
-            50000,
+            25000,
             TIMESTEP,            
             OUTDIR,
             HOFDIR,            
@@ -984,6 +1094,7 @@ def saveHOF(hof):
         runSim(hofScriptPath)
         outFilePath = os.path.join(sim.outdir,sim.outName)
         sim.postProcessOutput(outFilePath)
+        i+=1
 
 def mkdirs(directory):
     try:
@@ -1026,6 +1137,8 @@ def main():
                     csv.write(','+str(r[2][i]))
                 csv.write('\n')
         return
+
+
 
 
     try:
@@ -1093,6 +1206,9 @@ def main():
         evaluate = evaluateBudding
     elif FITNESSFUNCTION == 'diameter':
         evaluate = evaluateDiameter
+    elif FITNESSFUNCTION == 'smallworld':
+        evaluate = evaluateSmallWorld
+
 
     ga = nga.NetworkedGeneticAlgorithm(
        genomeSize = GENOMESIZE,

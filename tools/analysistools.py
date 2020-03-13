@@ -190,6 +190,8 @@ def smallWorldNess(G):
     SW = (clusteringG/clusteringRG)/(pLengthG/pLengthRG)
     return SW
 
+def smallWorld2(G):
+    return networkx.algorithms.smallworld.omega(G)
 
 def dropChildren(data, parentKey, childKeys, silent=True):
 	if not silent:

@@ -163,12 +163,18 @@ class NetworkedGeneticAlgorithm:
             log.append(d)
         return log
 
+    def getMinFitness(self,pop):
+        return numpy.min([p.fitness.values[-1] for p in pop])
+
     def getTotalFitness(self,pop):
         return numpy.sum([p.fitness.values[-1] for p in pop])
 
 
     def migration(self,islands):
+        if len(islands)<2:
+            return islands
         network = self.net
+        minF = numpy.min(list(map(self.getMinFitness,islands)))
         rFitness = 1.0/(numpy.sum(list(map(self.getTotalFitness,islands))))
         s = random.uniform(0,1)
         t = 0.0
@@ -186,6 +192,7 @@ class NetworkedGeneticAlgorithm:
                     return islands
                 else:
                     t+=f
+        return islands
 
     def algorithm(self,pop,verbose=False):
         return self.subroutine(pop,self.toolbox,self.buildStats(),self.hof,verbose=verbose)
