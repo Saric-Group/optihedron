@@ -95,7 +95,7 @@ parser.add_argument('-sg','--startinggen',default=0, type=int,
                     help='starting generation')
 
 parser.add_argument('-ff','--fitnessfunction',default="budding",
-                    choices=['budding', 'diameter','smallworld'])
+                    choices=['budding', 'diameter','smallworld','density','subgraph','densub'])
 
 
 #Model Options
@@ -789,6 +789,38 @@ def evaluateBudding(individual):
                 pickle.dump(r, handle, protocol=pickle.HIGHEST_PROTOCOL)
     return r[0],
 
+def evaluateDensity(individual,minPrune=0.3,maxPrune=0.4,pruneStep=0.1):
+
+    phenome = CoveredNanoParticlePhenome(individual,EXPRPLACES,EPSPLACES,EPSMIN,EPSMAX) if not PARTIAL else NanoParticlePhenome(individual,EXPRPLACES,EPSPLACES,POLANGPLACES,AZIANGPLACES,EPSMIN,EPSMAX)
+    np = phenome.particle
+    n = atools.buildLigandNetwork(np.ligands)
+    densities = []
+    for p in atools.frange(minPrune,maxPrune,pruneStep):
+        pN = atools.pruneNetwork(n,p)
+        densities.append(nx.density(pN))
+    return -numpy.mean(densities),
+
+def evaluateSubgraphNumber(individual,minPrune=0.3,maxPrune=0.4,pruneStep=0.1,norm=True):
+
+    phenome = CoveredNanoParticlePhenome(individual,EXPRPLACES,EPSPLACES,EPSMIN,EPSMAX) if not PARTIAL else NanoParticlePhenome(individual,EXPRPLACES,EPSPLACES,POLANGPLACES,AZIANGPLACES,EPSMIN,EPSMAX)
+    np = phenome.particle
+    n = atools.buildLigandNetwork(np.ligands)
+    subgraphs = []
+    for p in atools.frange(minPrune,maxPrune,pruneStep):
+        pN = atools.pruneNetwork(n,p)
+        graphs = list(nx.connected_component_subgraphs(pN))
+        subgraphs.append(len(graphs))
+    if norm:
+        return -float(numpy.mean(subgraphs))/float(numpy.sum(individual)),
+    else:
+        return -float(numpy.mean(subgraphs)),
+
+def evaluateDenSub(individual,minPrune=0.3,maxPrune=0.4,pruneStep=0.1):
+    s = evaluateSubgraphNumber(individual,minPrune,maxPrune,pruneStep)[0]
+    d = evaluateDensity(individual,minPrune,maxPrune,pruneStep)[0]
+    f = d+s
+    return f,
+
 def evaluateDiameter(individual):
     minPrune = 0.0
     maxPrune = 1.0
@@ -937,21 +969,23 @@ def commitSession(ga):
                     with open(pickleFile, 'rb') as handle:
                         budData = pickle.load(handle)
                 except:
-                    print "no bud data"
+                    if VERBOSE:
+                        print "no bud data"
+                    pass
 
                 i = dao.Individual(individual, np)
                 i.deme = dbdeme
                 if budData != None:
                     i.budPerc = budData[1]
                     i.budTime = budData[2]
-                for simData in budData[3]:
-                    if not ga.dbconn.ifSimExists(simData):
-                        s = dao.Simulation()
-                        s.data = simData
-                        i.sims.append(s)
-                    else:
-                        s = ga.dbconn.getSimByData(simData)
-                        i.sims.append(s)
+                    for simData in budData[3]:
+                        if not ga.dbconn.ifSimExists(simData):
+                            s = dao.Simulation()
+                            s.data = simData
+                            i.sims.append(s)
+                        else:
+                            s = ga.dbconn.getSimByData(simData)
+                            i.sims.append(s)
                 dbGen.individuals.append(i)
                 for g in np.genelist:
                     gene = dao.Gene(g)
@@ -1208,6 +1242,12 @@ def main():
         evaluate = evaluateDiameter
     elif FITNESSFUNCTION == 'smallworld':
         evaluate = evaluateSmallWorld
+    elif FITNESSFUNCTION == 'density':
+        evaluate = evaluateDensity
+    elif FITNESSFUNCTION == 'subgraph':
+        evaluate = evaluateSubgraphNumber
+    elif FITNESSFUNCTION == 'densub':
+        evaluate = evaluateDenSub
 
 
     ga = nga.NetworkedGeneticAlgorithm(
