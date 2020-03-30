@@ -599,7 +599,7 @@ def evaluateParticleInstance(np,simName,rVec=vectools.randomUnitVector(),rAm=ran
                 time.sleep(1)
             if os.path.exists(pbs):
                 os.remove(pbs)
-                print "removed file: " + str(pbs)
+                print("removed file: " + str(pbs))
             
         except Exception as err:
             traceback.print_exc()
@@ -677,9 +677,9 @@ def evaluateParticleInstance(np,simName,rVec=vectools.randomUnitVector(),rAm=ran
     if os.path.exists(outFilePath):
         try:
             os.remove(outFilePath)
-            print "deleted file" + str(outFilePath)
+            print("deleted file" + str(outFilePath))
         except (OSError, IOError):
-            print "no output file to delete"
+            print("no output file to delete")
     return f,b,bt,dbData
 
 def evaluateParticle(np,simName):
@@ -887,7 +887,7 @@ def evaluateSmallWorld(individual):
 
     f = f4(numpy.linalg.norm(totalV),float(len(graphs))) + f5(spl,swf)
 
-    print numpy.linalg.norm(totalV), float(len(graphs)), spl, swf, f
+    print(numpy.linalg.norm(totalV), float(len(graphs)), spl, swf, f)
 
     # try:
     #     for g in graphs:
@@ -970,7 +970,7 @@ def commitSession(ga):
                         budData = pickle.load(handle)
                 except:
                     if VERBOSE:
-                        print "no bud data"
+                        print("no bud data")
                     pass
 
                 i = dao.Individual(individual, np)
@@ -1019,9 +1019,9 @@ def commitSession(ga):
 
         ga.dbconn.commit()
     except IOError as e:
-        print "I/O error({0}): {1}".format(e.errno, e.strerror)
+        print("I/O error({0}): {1}".format(e.errno, e.strerror))
     except Exception as e:
-        print "Unexpected error {0}".format(str(e))
+        print("Unexpected error {0}".format(str(e)))
 
 def beforeMigration(ga):
     misctools.removeByPattern(WDIR,"subhedra")
@@ -1052,7 +1052,7 @@ def saveBest(pop,gen):
             if p.fitness.values[-1] > maxFit:
                 ind = p
                 maxFit = ind.fitness.values[-1]
-    print "saving best:" + str(ind)+ ", fitness:" + str(ind.fitness.values[-1])
+    print("saving best:" + str(ind)+ ", fitness:" + str(ind.fitness.values[-1]))
     phenome = CoveredNanoParticlePhenome(ind,EXPRPLACES,EPSPLACES,EPSMIN,EPSMAX) if not PARTIAL else NanoParticlePhenome(ind,EXPRPLACES,EPSPLACES,POLANGPLACES,AZIANGPLACES,EPSMIN,EPSMAX)
     np = phenome.particle
     sim = MembraneSimulation(
@@ -1085,7 +1085,7 @@ def saveWorst(pop,gen):
             if p.fitness.values[-1] < minFit:
                 ind = p
                 minFit = ind.fitness.values[-1]
-    print "saving worst:" + str(ind)+ ", fitness:" + str(ind.fitness.values[-1])
+    print("saving worst:" + str(ind)+ ", fitness:" + str(ind.fitness.values[-1]))
     phenome = CoveredNanoParticlePhenome(ind,EXPRPLACES,EPSPLACES,EPSMIN,EPSMAX) if not PARTIAL else NanoParticlePhenome(ind,EXPRPLACES,EPSPLACES,POLANGPLACES,AZIANGPLACES,EPSMIN,EPSMAX)
     np = phenome.particle
     sim = MembraneSimulation(
@@ -1144,16 +1144,16 @@ def main():
 
     if ZOO != None:
         if os.path.isfile(ZOO) and os.access(ZOO, os.R_OK):
-            print "Loading zoo pickle file..."
+            print("Loading zoo pickle file...")
         else:
-            print "Either the file is missing or not readable"
+            print("Either the file is missing or not readable")
             return
         zooList = {}
         try:
             with open(ZOO, 'rb') as handle:
                 zooList = pickle.load(handle)
         except:
-            print "Something went wrong reading the zoo file"
+            print("Something went wrong reading the zoo file")
             return
         pmap = pools.ProcessPool(WORKERS).map
         results = pmap(mEval,[(v,k) for k,v in zooList.iteritems()])
@@ -1187,7 +1187,7 @@ def main():
         if not os.path.isdir(RUNDIR):
             mkdirs(RUNDIR)
     except Exception as e:
-        print "error creating working environment"
+        print("error creating working environment")
         raise e
         
     if runArgs.graph == 'singlet':
@@ -1295,9 +1295,9 @@ def main():
            ga.dbconn.close()
            misctools.removeByPattern(OUTDIR,"pickle")
         except IOError as e:
-            print "I/O error({0}): {1}".format(e.errno, e.strerror)
+            print("I/O error({0}): {1}".format(e.errno, e.strerror))
         except:
-            print "Unexpected error:", sys.exc_info()[0]                    
+            print("Unexpected error:", sys.exc_info()[0])                 
 
 
 if __name__ == "__main__":
