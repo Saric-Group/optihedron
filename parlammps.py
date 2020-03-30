@@ -109,7 +109,7 @@ def runSim(script,np,timeout,silent=True):
             if (silent):
                 pass
             else:
-                print stdout_line,
+                print(stdout_line,)
         return True
     except TimeoutError:
         print('Process timed out')
