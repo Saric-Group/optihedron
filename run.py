@@ -1064,7 +1064,14 @@ def saveToSummary(ga):
                 budTime
                 ])
     df = pd.read_csv(SUMMARYFILE)
-    gendf = pd.DataFrame(genData,columns=df.columns[1:])
+    gendf = pd.DataFrame(genData,columns=[
+        'genome',
+        'generation',
+        'deme',
+        'fitness',
+        'budding rate',
+        'budding time'
+        ])
     print(gendf)
     df.append(gendf,ignore_index=True)
     df.to_csv(SUMMARYFILE)
