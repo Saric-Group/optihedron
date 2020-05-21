@@ -1056,7 +1056,7 @@ def saveToSummary(ga):
                 budTime = budData[2]
 
             ligData = []
-            for l in np.ligands:
+            for l in np.particle.ligands:
                 if l.eps > 0:
                     ligData.append([l.eps,l.sig,l.rad,l.polAng,l.aziAng])
             genData.append([
