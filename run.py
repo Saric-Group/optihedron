@@ -1055,18 +1055,18 @@ def saveToSummary(ga):
                 budPerc = budData[1]
                 budTime = budData[2]
 
-            genData.append(
+            genData.append([
                 str(list(individual)).replace(',','').replace('[','').replace(']',''),
                 ga.gen,
                 isleNum,
                 individual.fitness.values[-1],
                 budPerc,
-                budTime
+                budTime]
                 )
     df = pd.read_csv(SUMMARYFILE)
-    gendf = pd.DateFrame(genData,columns=df.columns)
+    gendf = pd.DataFrame(genData,columns=df.columns)
     print(gendf)
-    df.append(gendf)
+    df.append(gendf,ignore_index=True)
     df.to_csv(SUMMARYFILE)
 
 def afterMigration(ga):
