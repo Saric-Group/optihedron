@@ -1072,9 +1072,8 @@ def saveToSummary(ga):
         'budding rate',
         'budding time'
         ])
-    print(gendf)
-    df.append(gendf,ignore_index=True)
-    df.to_csv(SUMMARYFILE)
+    df = df.append(gendf,ignore_index=True)
+    df.to_csv(SUMMARYFILE,index=False)
 
 def afterMigration(ga):
     if SAVERESULTS:
@@ -1294,7 +1293,7 @@ def main():
                 'budding rate',
                 'budding time'
                 ])
-            df.to_csv(SUMMARYFILE)
+            df.to_csv(SUMMARYFILE,index=False)
         else:
             print('summary file already exists')
 
