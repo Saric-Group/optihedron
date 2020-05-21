@@ -1352,13 +1352,13 @@ def main():
             ga.dbconn.gaSession.demes.append(dao.Deme())
         ga.dbconn.commit()
 
-    if SUMMARYFILE != None:
-        saveToSummary(ga)
-
     ga.firstGeneration()
 
     if SAVERESULTS:
         commitSession(ga)
+
+    if SUMMARYFILE != None:
+        saveToSummary(ga)
 
     results = ga.run(NGEN,FREQ,MIGR,STARTINGGEN)
 
