@@ -778,6 +778,7 @@ def evaluateParticle(np,simName):
 
 
 def evaluateBudding(individual):
+    print('evaluating {}'.format(str(individual)))
     phenome = CoveredNanoParticlePhenome(individual,EXPRPLACES,EPSPLACES,EPSMIN,EPSMAX) if not PARTIAL else NanoParticlePhenome(individual,EXPRPLACES,EPSPLACES,POLANGPLACES,AZIANGPLACES,EPSMIN,EPSMAX)
     np = phenome.particle    
     simName = phenome.id + misctools.randomStr(10)
