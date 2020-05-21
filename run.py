@@ -1055,22 +1055,29 @@ def saveToSummary(ga):
                 budPerc = budData[1]
                 budTime = budData[2]
 
+            ligData = []
+            for l in np.ligands:
+                if l.eps > 0:
+                    ligData.append([l.eps,l.sig,l.rad,l.polAng,l.aziAng])
             genData.append([
-                str(list(individual)).replace(',','').replace('[','').replace(']',''),
+                str(list(individual)).replace(',','').replace('[','').replace(']','').replace(' ',''),
                 ga.gen,
                 isleNum,
                 individual.fitness.values[-1],
                 budPerc,
-                budTime
+                budTime,
+                str(ligData)
                 ])
     df = pd.read_csv(SUMMARYFILE)
+
     gendf = pd.DataFrame(genData,columns=[
         'genome',
         'generation',
         'deme',
         'fitness',
         'budding rate',
-        'budding time'
+        'budding time',
+        'ligand data'
         ])
     df = df.append(gendf,ignore_index=True)
     df.to_csv(SUMMARYFILE,index=False)
@@ -1291,7 +1298,8 @@ def main():
                 'deme',
                 'fitness',
                 'budding rate',
-                'budding time'
+                'budding time',
+                'ligand data'
                 ])
             df.to_csv(SUMMARYFILE,index=False)
         else:
@@ -1343,6 +1351,9 @@ def main():
         for isle in ga.islands:
             ga.dbconn.gaSession.demes.append(dao.Deme())
         ga.dbconn.commit()
+
+    if SUMMARYFILE != None:
+        saveToSummary(ga)
 
     ga.firstGeneration()
 
