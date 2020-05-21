@@ -1035,7 +1035,9 @@ def beforeMigration(ga):
 
 def saveToSummary(ga):
     genData = []
+    isleNum=0
     for isle in ga.islands:
+        isleNum+=1
         for individual in isle:
             np = CoveredNanoParticlePhenome(individual,EXPRPLACES,EPSPLACES,EPSMIN,EPSMAX) if not PARTIAL else NanoParticlePhenome(individual,EXPRPLACES,EPSPLACES,POLANGPLACES,AZIANGPLACES,EPSMIN,EPSMAX)
             budData = None
@@ -1056,12 +1058,13 @@ def saveToSummary(ga):
             genData.append(
                 str(list(individual)).replace(',','').replace('[','').replace(']',''),
                 ga.gen,
+                isleNum,
                 ind.fitness.values[-1],
                 budPerc,
                 budTime
                 )
     df = pd.read_csv(SUMMARYFILE)
-    gendf = pd.DateFrame(genData,columns=df.names)
+    gendf = pd.DateFrame(genData,columns=df.columns)
     print(gendf)
     df.append(gendf)
     df.to_csv(SUMMARYFILE)
@@ -1276,7 +1279,7 @@ def main():
 
     if SUMMARYFILE != None:
         if not os.path.isfile(SUMMARYFILE):
-            df=pd.DataFrame([], columns = ['genome','generation','deme','fitness','budding time'])
+            df=pd.DataFrame([], columns = ['genome','generation','deme','fitness','budding rate','budding time'])
             df.to_csv(SUMMARYFILE)
         else:
             print('summary file already exists')
