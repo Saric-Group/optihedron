@@ -1061,10 +1061,10 @@ def saveToSummary(ga):
                 isleNum,
                 individual.fitness.values[-1],
                 budPerc,
-                budTime]
-                )
+                budTime
+                ])
     df = pd.read_csv(SUMMARYFILE)
-    gendf = pd.DataFrame(genData,columns=df.columns)
+    gendf = pd.DataFrame(genData,columns=df.columns[1:])
     print(gendf)
     df.append(gendf,ignore_index=True)
     df.to_csv(SUMMARYFILE)
@@ -1279,7 +1279,14 @@ def main():
 
     if SUMMARYFILE != None:
         if not os.path.isfile(SUMMARYFILE):
-            df=pd.DataFrame([], columns = ['genome','generation','deme','fitness','budding rate','budding time'])
+            df=pd.DataFrame([], columns = [
+                'genome',
+                'generation',
+                'deme',
+                'fitness',
+                'budding rate',
+                'budding time'
+                ])
             df.to_csv(SUMMARYFILE)
         else:
             print('summary file already exists')
