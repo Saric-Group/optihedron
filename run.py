@@ -17,6 +17,7 @@ import sys
 from pathos import pools
 import traceback
 import pickle
+import pandas as pd
 
 from operator import itemgetter
 
@@ -154,6 +155,8 @@ parser.add_argument('-tm','--timeout', default=1800, type=int,
 
 parser.add_argument('-sr','--saveresults', action='store_true',
                     help='option to save results to db')
+parser.add_argument('-ss','--savesummary', default=None, type=str, 
+                    help='save results to a summary csv file')
 parser.add_argument('-ko','--keepoutput', action='store_true',
                     help='option to keep all output files the simulation generates')
 parser.add_argument('-ki','--keepinput', action='store_true',
@@ -217,6 +220,7 @@ NP = args.nodes
 TIMEOUT = args.timeout
 
 SAVERESULTS = args.saveresults
+SUMMARYFILE = args.savesummary
 
 KEEPINPUT = args.keepinput
 KEEPOUTPUT = args.keepoutput
@@ -1029,6 +1033,39 @@ def beforeMigration(ga):
 
     return
 
+def saveToSummary(ga):
+    genData = []
+    for isle in ga.islands:
+        for individual in isle:
+            np = CoveredNanoParticlePhenome(individual,EXPRPLACES,EPSPLACES,EPSMIN,EPSMAX) if not PARTIAL else NanoParticlePhenome(individual,EXPRPLACES,EPSPLACES,POLANGPLACES,AZIANGPLACES,EPSMIN,EPSMAX)
+            budData = None
+            budPerc = -2
+            budTime = -2
+            pickleFile = os.path.join(OUTDIR,np.id+'.pickle')
+            try:
+                with open(pickleFile, 'rb') as handle:
+                    budData = pickle.load(handle)
+            except:
+                if VERBOSE:
+                    print("no bud data")
+                pass
+            if budData != None:
+                budPerc = budData[1]
+                budTime = budData[2]
+
+            genData.append(
+                str(list(individual)).replace(',','').replace('[','').replace(']',''),
+                ga.gen,
+                ind.fitness.values[-1],
+                budPerc,
+                budTime
+                )
+    df = pd.read_csv(SUMMARYFILE)
+    gendf = pd.DateFrame(genData,columns=df.names)
+    print(gendf)
+    df.append(gendf)
+    df.to_csv(SUMMARYFILE)
+
 def afterMigration(ga):
     if SAVERESULTS:
         commitSession(ga)
@@ -1038,6 +1075,10 @@ def afterMigration(ga):
 
     if KEEPWORST:
         saveWorst(ga.islands,ga.gen)
+
+    if SUMMARYFILE != None:
+        saveToSummary(ga)
+                
 
     return
 
@@ -1232,6 +1273,13 @@ def main():
        dbconn.commit()
     else:
        dbconn = None
+
+    if SUMMARYFILE != None:
+        if not os.path.isfile(SUMMARYFILE):
+            df=pd.DataFrame([], columns = ['genome','generation','deme','fitness','budding time'])
+            df.to_csv(SUMMARYFILE)
+        else:
+            print('summary file already exists')
 
     initPopFile = "init.json" if FILE == None else FILE
 
