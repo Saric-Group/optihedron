@@ -1063,7 +1063,7 @@ def saveToSummary(ga):
                 str(list(individual)).replace(',','').replace('[','').replace(']','').replace(' ',''),
                 ga.gen,
                 isleNum,
-                individual.fitness.values[-1] if (individual.fitness != None) else -1,
+                individual.fitness.values[-1] if individual.fitness is not None else -1,
                 budPerc,
                 budTime,
                 str(ligData)
