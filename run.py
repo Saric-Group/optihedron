@@ -1059,7 +1059,7 @@ def saveToSummary(ga):
                 str(list(individual)).replace(',','').replace('[','').replace(']',''),
                 ga.gen,
                 isleNum,
-                ind.fitness.values[-1],
+                individual.fitness.values[-1],
                 budPerc,
                 budTime
                 )
