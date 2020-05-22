@@ -788,7 +788,7 @@ def evaluateBudding(individual):
     simName = phenome.id + misctools.randomStr(10)
     r = evaluateParticle(np,simName)
     pickleFilePath = os.path.join(OUTDIR,phenome.id+'.pickle')
-    if SAVERESULTS:
+    if SAVERESULTS or SUMMARYFILE is not None or SUMMARYFILE != None:
         if not os.path.exists(pickleFilePath):
             with open(pickleFilePath, 'wb') as handle:
                 pickle.dump(r, handle, protocol=pickle.HIGHEST_PROTOCOL)
