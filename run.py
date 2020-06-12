@@ -17,6 +17,7 @@ import sys
 from pathos import pools
 import traceback
 import pickle
+import pandas as pd
 
 from operator import itemgetter
 
@@ -154,6 +155,8 @@ parser.add_argument('-tm','--timeout', default=1800, type=int,
 
 parser.add_argument('-sr','--saveresults', action='store_true',
                     help='option to save results to db')
+parser.add_argument('-ss','--savesummary', default=None, type=str, 
+                    help='save results to a summary csv file')
 parser.add_argument('-ko','--keepoutput', action='store_true',
                     help='option to keep all output files the simulation generates')
 parser.add_argument('-ki','--keepinput', action='store_true',
@@ -217,6 +220,7 @@ NP = args.nodes
 TIMEOUT = args.timeout
 
 SAVERESULTS = args.saveresults
+SUMMARYFILE = args.savesummary
 
 KEEPINPUT = args.keepinput
 KEEPOUTPUT = args.keepoutput
@@ -784,7 +788,7 @@ def evaluateBudding(individual):
     simName = phenome.id + misctools.randomStr(10)
     r = evaluateParticle(np,simName)
     pickleFilePath = os.path.join(OUTDIR,phenome.id+'.pickle')
-    if SAVERESULTS:
+    if SAVERESULTS or SUMMARYFILE is not None or SUMMARYFILE != None:
         if not os.path.exists(pickleFilePath):
             with open(pickleFilePath, 'wb') as handle:
                 pickle.dump(r, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -1029,6 +1033,55 @@ def beforeMigration(ga):
 
     return
 
+def saveToSummary(ga):
+    genData = []
+    isleNum=0
+    for isle in ga.islands:
+        isleNum+=1
+        for individual in isle:
+            np = CoveredNanoParticlePhenome(individual,EXPRPLACES,EPSPLACES,EPSMIN,EPSMAX) if not PARTIAL else NanoParticlePhenome(individual,EXPRPLACES,EPSPLACES,POLANGPLACES,AZIANGPLACES,EPSMIN,EPSMAX)
+            budData = None
+            budPerc = -2
+            budTime = -2
+            pickleFile = os.path.join(OUTDIR,np.id+'.pickle')
+            try:
+                with open(pickleFile, 'rb') as handle:
+                    budData = pickle.load(handle)
+            except:
+                if VERBOSE:
+                    print("no bud data")
+                pass
+            if budData != None:
+                budPerc = budData[1]
+                budTime = budData[2]
+
+            ligData = []
+            for l in np.particle.ligands:
+                if l.eps > 0:
+                    ligData.append([l.eps,l.sig,l.rad,l.polAng,l.aziAng])
+            genData.append([
+                str(list(individual)).replace(',','').replace('[','').replace(']','').replace(' ',''),
+                ga.gen,
+                isleNum,
+                individual.fitness.values[-1] if individual.fitness is not None else -1,
+                budPerc,
+                budTime,
+                str(ligData)
+                ])
+    df = pd.read_csv(SUMMARYFILE)
+
+    gendf = pd.DataFrame(genData,columns=[
+        'genome',
+        'generation',
+        'deme',
+        'fitness',
+        'budding rate',
+        'budding time',
+        'ligand data'
+        ])
+    df = df.append(gendf,ignore_index=True)
+    df.to_csv(SUMMARYFILE,index=False)
+
 def afterMigration(ga):
     if SAVERESULTS:
         commitSession(ga)
@@ -1038,6 +1091,10 @@ def afterMigration(ga):
 
     if KEEPWORST:
         saveWorst(ga.islands,ga.gen)
+
+    if SUMMARYFILE != None:
+        saveToSummary(ga)
+                
 
     return
 
@@ -1059,7 +1116,7 @@ def saveBest(pop,gen):
     sim = MembraneSimulation(
         'gen_'+str(gen)+"_best",
         np,
-        25000,
+        RUNTIME,
         TIMESTEP,            
         OUTDIR,
         HOFDIR,            
@@ -1092,7 +1149,7 @@ def saveWorst(pop,gen):
     sim = MembraneSimulation(
         'gen_'+str(gen)+"_worst",
         np,
-        25000,
+        RUNTIME,
         TIMESTEP,            
         OUTDIR,
         HOFDIR,            
@@ -1117,7 +1174,7 @@ def saveHOF(hof):
         sim = MembraneSimulation(
             'hof_'+str(i),
             np,
-            25000,
+            RUNTIME,
             TIMESTEP,            
             OUTDIR,
             HOFDIR,            
@@ -1233,6 +1290,21 @@ def main():
     else:
        dbconn = None
 
+    if SUMMARYFILE != None:
+        if not os.path.isfile(SUMMARYFILE):
+            df=pd.DataFrame([], columns = [
+                'genome',
+                'generation',
+                'deme',
+                'fitness',
+                'budding rate',
+                'budding time',
+                'ligand data'
+                ])
+            df.to_csv(SUMMARYFILE,index=False)
+        else:
+            print('summary file already exists')
+
     initPopFile = "init.json" if FILE == None else FILE
 
     evaluate = None
@@ -1284,6 +1356,9 @@ def main():
 
     if SAVERESULTS:
         commitSession(ga)
+
+    if SUMMARYFILE != None:
+        saveToSummary(ga)
 
     results = ga.run(NGEN,FREQ,MIGR,STARTINGGEN)
 
