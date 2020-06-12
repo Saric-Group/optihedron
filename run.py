@@ -1116,7 +1116,7 @@ def saveBest(pop,gen):
     sim = MembraneSimulation(
         'gen_'+str(gen)+"_best",
         np,
-        25000,
+        RUNTIME,
         TIMESTEP,            
         OUTDIR,
         HOFDIR,            
@@ -1149,7 +1149,7 @@ def saveWorst(pop,gen):
     sim = MembraneSimulation(
         'gen_'+str(gen)+"_worst",
         np,
-        25000,
+        RUNTIME,
         TIMESTEP,            
         OUTDIR,
         HOFDIR,            
@@ -1174,7 +1174,7 @@ def saveHOF(hof):
         sim = MembraneSimulation(
             'hof_'+str(i),
             np,
-            25000,
+            RUNTIME,
             TIMESTEP,            
             OUTDIR,
             HOFDIR,            
