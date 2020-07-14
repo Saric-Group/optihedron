@@ -7,7 +7,7 @@ import copy
 import time
 import pickle
 import networkx
-import holoviews as hv
+# import holoviews as hv
 import csv, codecs, cStringIO
 import sys
 import math
