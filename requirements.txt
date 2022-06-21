@@ -30,7 +30,7 @@ mpi4py==3.0.0
 msgpack-python==0.5.4
 multiprocess==0.70.5
 networkx==2.1
-numpy==1.14.0
+numpy==1.22.0
 packaging==17.1
 pandas==0.22.0
 param==1.6.0
