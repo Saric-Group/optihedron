@@ -3,7 +3,7 @@ backports-abc==0.5
 backports.functools-lru-cache==1.5
 backports.shutil-get-terminal-size==1.0.0
 bokeh==0.12.15
-certifi==2018.1.18
+certifi==2022.12.7
 click==6.7
 cloudpickle==0.5.2
 cycler==0.10.0
